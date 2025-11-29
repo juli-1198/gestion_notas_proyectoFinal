@@ -12,31 +12,12 @@ namespace Final_H2
         public FormRegistroLogin()
         {
             InitializeComponent();
+            InicializarEstadoInicial();
         }
 
 
         private void lblCorreo_Click(object sender, EventArgs e)
         {
-
-        }
-
-
-
-
-        private void FormRegistroLogin_Load(object sender, EventArgs e)
-        {
-            lblDisponible.Visible = false;
-
-            panelInicioSesion.Visible = false;
-            //panelInicioSesion.BringToFront();
-
-            panelRegistrarUsuario.Visible = true;
-            panelRecuperarContrasena.Visible = false;
-
-            combBRol.Items.Add("DOCENTE");
-            combBRol.Items.Add("ESTUDIANTE");
-            combBRol.DropDownStyle = ComboBoxStyle.DropDownList;
-
 
         }
 
@@ -48,7 +29,6 @@ namespace Final_H2
                 txtCorreo,
                 txtUsuarioRegistro,
                 txtContrasenaRegistro,
-                txtConfirmarContrasenaRegistro,
                 txtPregunta,
                 txtRespuestaSeguridad,
                 combBRol,
@@ -66,18 +46,27 @@ namespace Final_H2
                 return;
             }
 
+            if (!service.CorreoDisponible(txtCorreo.Text))
+            {
+                MessageBox.Show("Este correo ya está registrado. Usa otro.");
+                return;
+            }
+
+
+
             Usuario u = new Usuario
             {
-                PrimerNombre = txtPrimerNombre.Text,
-                SegundoNombre = txtSegundoNombre.Text,
-                PrimerApellido = txtPrimerApellido.Text,
-                SegundoApellido = txtSegundoApellido.Text,
-                Correo = txtCorreo.Text,
-                NombreUsuario = txtUsuarioRegistro.Text,
-                ContrasenaHash = PasswordHelper.Hash(txtContrasenaRegistro.Text),
-                PreguntaSeguridad = txtPregunta.Text,
-                RespuestaSeguridadHash = PasswordHelper.Hash(txtRespuestaSeguridad.Text),
-                Rol = combBRol.SelectedItem.ToString()
+                primerNombre = txtPrimerNombre.Text,
+                segundoNombre = txtSegundoNombre.Text,
+                primerApellido = txtPrimerApellido.Text,
+                segundoApellido = txtSegundoApellido.Text,
+                correo = txtCorreo.Text,
+                nombreUsuario = txtUsuarioRegistro.Text,
+                contrasenaHash = PasswordHelper.Hash(txtContrasenaRegistro.Text),
+                rol = combBRol.Text,
+                preguntaSeguridad = txtPregunta.Text,
+                respuestaSeguridadHash = PasswordHelper.Hash(txtRespuestaSeguridad.Text)
+
             };
 
             try
@@ -85,18 +74,41 @@ namespace Final_H2
                 int id = service.RegistrarUsuario(u);
 
                 if (id > 0)
+                {
                     MessageBox.Show("Usuario registrado correctamente.");
+                    panelRegistrarUsuario.Visible = false;
+                    panelInicioSesion.Visible = true;
+                    panelInicioSesion.BringToFront();
+                }
                 else
+                {
                     MessageBox.Show("Error registrando usuario.");
+                    return;
+
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error: " + ex.Message);
+                MessageBox.Show(ex.ToString());
+                return;
             }
 
+        }
 
+        private void InicializarEstadoInicial()
+        {
+            lblDisponible.Visible = false;
 
-            panelRegistrarUsuario.Visible = false; 
+            panelInicioSesion.Visible = true;
+            panelInicioSesion.BringToFront();
+
+            panelRegistrarUsuario.Visible = false;
+            panelRecuperarContrasena.Visible = false;
+
+            combBRol.Items.Clear();
+            combBRol.Items.Add("DOCENTE");
+            combBRol.Items.Add("ESTUDIANTE");
+            combBRol.DropDownStyle = ComboBoxStyle.DropDownList;
 
         }
 
@@ -106,17 +118,17 @@ namespace Final_H2
             panelRecuperarContrasena.Visible = false;
 
 
-            txtRecuperarUsuario.Text = "Usuario";
+            txtRecuperarUsuario.Text = "Escriba aquí";
             txtRecuperarUsuario.ForeColor = Color.Gray;
 
-            txtRecuperarRespuesta.Text = "Respuesta de seguridad";
+            txtRecuperarRespuesta.Text = "Escriba aquí";
             txtRecuperarRespuesta.ForeColor = Color.Gray;
 
-            txtRecuperarNuevaContrasena.Text = "Nueva contraseña";
+            txtRecuperarNuevaContrasena.Text = "Escriba aquí";
             txtRecuperarNuevaContrasena.ForeColor = Color.Gray;
             txtRecuperarNuevaContrasena.PasswordChar = '\0';
 
-            txtRecuperarConfirmarContrasena.Text = "Confirmar contraseña";
+            txtRecuperarConfirmarContrasena.Text = "Escriba aquí";
             txtRecuperarConfirmarContrasena.ForeColor = Color.Gray;
             txtRecuperarConfirmarContrasena.PasswordChar = '\0';
 
@@ -147,7 +159,7 @@ namespace Final_H2
 
             FormMain frm = new FormMain(usuario);
             frm.Show();
-            panelInicioSesion.Visible = false;
+            this.Hide();
         }
 
         private void lblIrInicioSesion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -256,23 +268,18 @@ namespace Final_H2
                 MessageBox.Show("Error al cambiar la contraseña.");
             }
 
-            /*if (cambiado)
-            {
-                MessageBox.Show("Contraseña actualizada exitosamente.");
-                panelRecuperarContrasena.Visible = false;
-                panelInicioSesion.Visible = true;
-            }
-            else
-            {
-                MessageBox.Show("Error al actualizar la contraseña.");
-            }*/
-
         }
 
         private void lblOlvideContrasena_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             InicializarPanelRecuperar();
             panelRecuperarContrasena.Visible = true;
+            panelRecuperarContrasena.BringToFront();
+        }
+
+        private void FormRegistroLogin_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -8,16 +8,43 @@ namespace Final_H2.Models
 {
     public class Usuario
     {
-        public int IdUsuario { get; set; }
-        public string PrimerNombre { get; set; }
-        public string SegundoNombre { get; set; }
-        public string PrimerApellido { get; set; }
-        public string SegundoApellido { get; set; }
-        public string Correo { get; set; }
-        public string NombreUsuario { get; set; }
-        public string ContrasenaHash { get; set; }
-        public string Rol { get; set; }
-        public string PreguntaSeguridad { get; set; }
-        public string RespuestaSeguridadHash { get; set; }
+        public int idUsuario { get; set; }
+        public string primerNombre { get; set; }
+        public string? segundoNombre { get; set; }
+        public string primerApellido { get; set; }
+        public string? segundoApellido { get; set; }
+        public string correo { get; set; }
+        public string nombreUsuario { get; set; }
+        public string contrasenaHash { get; set; }
+        public string rol { get; set; }
+        public string preguntaSeguridad { get; set; }
+        public string respuestaSeguridadHash { get; set; }
+
+
+        public string NombreCompleto
+        {
+            get
+            {
+                return $"{primerNombre} {segundoNombre} {primerApellido} {segundoApellido}".Replace("  ", " ");
+            }
+        }
+
+        public override string ToString()
+        {
+            return NombreCompleto;
+        }
+
+        // Constructor vacío obligatorio
+        public Usuario() { }
+
+        // Constructor 
+        public Usuario(string nombUsuario, string contraHash)
+        {
+            nombreUsuario = nombUsuario;
+            contrasenaHash = contraHash;
+        }
+
     }
+
+
 }

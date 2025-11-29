@@ -64,7 +64,6 @@ namespace Final_H2.Utils
             TextBox txtCorreo,
             TextBox txtUsuarioRegistro,
             TextBox txtContrasenaRegistro,
-            TextBox txtConfirmarContrasenaRegistro,
             TextBox txtPregunta,
             TextBox txtRespuestaSeguridad,
             ComboBox combBRol,
@@ -100,15 +99,10 @@ namespace Final_H2.Utils
                 return false;
             }
 
-            if (txtContrasenaRegistro.Text != txtConfirmarContrasenaRegistro.Text)
-            {
-                error = "Las contraseñas no coinciden.";
-                return false;
-            }
 
             if (combBRol.SelectedIndex == -1)
-            { 
-                error = "Debes seleccionar un rol."; 
+            {
+                error = "Debes seleccionar un rol.";
                 return false;
             }
 

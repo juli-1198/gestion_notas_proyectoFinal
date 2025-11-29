@@ -10,11 +10,10 @@ namespace Final_H2.Models
     {
         public Estudiante()
         {
-            Rol = "ESTUDIANTE";
+            rol = "ESTUDIANTE";
         }
 
-        //averiguar bien el funcionamiento de esto en la base de datos y la aplicacion
-        public string CodigoEstudiante { get; set; }
+        
 
     }
 }

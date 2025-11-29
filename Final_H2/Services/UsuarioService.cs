@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Npgsql;
 using Final_H2.Database;
 using Final_H2.Models;
@@ -34,7 +30,6 @@ namespace Final_H2.Services
             cmd.Parameters.AddWithValue("@u", nombre);
 
             long count = (long)cmd.ExecuteScalar();
-
             return count == 0;
         }
 
@@ -61,7 +56,7 @@ INSERT INTO gestion_notas.usuario
     contrasena_hash,
     rol,
     pregunta_seguridad,
-    respuesta_seguridad_hash
+    respuesta_seg_hash
 )
 VALUES
 (
@@ -72,55 +67,77 @@ VALUES
     @correo,
     @nu,
     @pass,
-    @rol,
+    @rol::rol_usuario,
     @preg,
     @resp
 )
 RETURNING id_usuario;
 ";
 
-                var cmd = new NpgsqlCommand(sqlInsertUser, con);
+                var cmd = new NpgsqlCommand(sqlInsertUser, con, tx);
 
-                cmd.Parameters.AddWithValue("@pn", u.PrimerNombre);
-                cmd.Parameters.AddWithValue("@sn", u.SegundoNombre ?? "");
-                cmd.Parameters.AddWithValue("@pa", u.PrimerApellido);
-                cmd.Parameters.AddWithValue("@sa", u.SegundoApellido ?? "");
-                cmd.Parameters.AddWithValue("@correo", u.Correo);
-                cmd.Parameters.AddWithValue("@nu", u.NombreUsuario);
-                cmd.Parameters.AddWithValue("@pass", u.ContrasenaHash);
-                cmd.Parameters.AddWithValue("@rol", u.Rol);
-                cmd.Parameters.AddWithValue("@preg", u.PreguntaSeguridad);
-                cmd.Parameters.AddWithValue("@resp", u.RespuestaSeguridadHash);
+                cmd.Parameters.AddWithValue("@pn", u.primerNombre);
+                cmd.Parameters.AddWithValue("@sn", u.segundoNombre ?? "");
+                cmd.Parameters.AddWithValue("@pa", u.primerApellido);
+                cmd.Parameters.AddWithValue("@sa", u.segundoApellido ?? "");
+                cmd.Parameters.AddWithValue("@correo", u.correo);
+                cmd.Parameters.AddWithValue("@nu", u.nombreUsuario);
+                cmd.Parameters.AddWithValue("@pass", u.contrasenaHash);
+                cmd.Parameters.AddWithValue("@rol", u.rol);
+                cmd.Parameters.AddWithValue("@preg", u.preguntaSeguridad);
+                cmd.Parameters.AddWithValue("@resp", u.respuestaSeguridadHash);
 
                 int id = Convert.ToInt32(cmd.ExecuteScalar());
 
-                // INSERT DEPENDIENDO DEL ROL
-                string tabla = (u.Rol == "DOCENTE") ? "docente" : "estudiante";
-                string campo = (u.Rol == "DOCENTE") ? "id_docente" : "id_estudiante";
+                string tabla = u.rol == "DOCENTE" ? "docente" : "estudiante";
+                string campo = u.rol == "DOCENTE" ? "id_docente" : "id_estudiante";
 
-                string sqlInsertRol = $"INSERT INTO gestion_notas.{tabla} ({campo}) VALUES (@id)";
+                string sqlInsertRol = $"INSERT INTO {tabla} ({campo}) VALUES (@id)";
 
-                var cmdRole = new NpgsqlCommand(sqlInsertRol, con);
+                var cmdRole = new NpgsqlCommand(sqlInsertRol, con, tx);
                 cmdRole.Parameters.AddWithValue("@id", id);
                 cmdRole.ExecuteNonQuery();
 
                 tx.Commit();
                 return id;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 tx.Rollback();
+                MessageBox.Show("ERROR SQL:\n" + ex.Message);
                 return -1;
             }
         }
+        
+
+        //validar que el correo si este disponible
+        public bool CorreoDisponible(string correo)
+        {
+            using var con = _db.GetConnection();
+            con.Open();
+
+            string sql = "SELECT COUNT(*) FROM gestion_notas.usuario WHERE correo = @c";
+
+            using var cmd = new NpgsqlCommand(sql, con);
+            cmd.Parameters.AddWithValue("@c", correo);
+
+            long count = (long)cmd.ExecuteScalar();
+
+            return count == 0;  
+        }
+
 
         // Login - validar usuario y contraseña
         public Usuario Login(string nombreUsuario, string hashContrasena)
         {
             using var con = _db.GetConnection();
             con.Open();
-
-            string sql = "SELECT * FROM gestion_notas.usuario WHERE nombre_usuario=@u";
+            
+            string sql = @"
+SELECT id_usuario, primer_nombre, primer_apellido, rol, contrasena_hash
+FROM gestion_notas.usuario 
+WHERE nombre_usuario = @u;
+";
 
             var cmd = new NpgsqlCommand(sql, con);
             cmd.Parameters.AddWithValue("@u", nombreUsuario);
@@ -137,10 +154,10 @@ RETURNING id_usuario;
 
             return new Usuario
             {
-                IdUsuario = Convert.ToInt32(reader["id_usuario"]),
-                PrimerNombre = reader["primer_nombre"].ToString(),
-                PrimerApellido = reader["primer_apellido"].ToString(),
-                Rol = reader["rol"].ToString()
+                idUsuario = Convert.ToInt32(reader["id_usuario"]),
+                primerNombre = reader["primer_nombre"].ToString(),
+                primerApellido = reader["primer_apellido"].ToString(),
+                rol = reader["rol"].ToString()
             };
         }
 
@@ -152,7 +169,7 @@ RETURNING id_usuario;
 
             string sql = @"
         SELECT pregunta_seguridad 
-        FROM gestion_notas.usuario 
+        FROM gestion_notas.usuario
         WHERE nombre_usuario = @u;
         ";
 
@@ -170,7 +187,7 @@ RETURNING id_usuario;
             con.Open();
 
             string sql = @"
-        SELECT respuesta_seguridad_hash
+        SELECT respuesta_seg_hash
         FROM gestion_notas.usuario 
         WHERE nombre_usuario = @u;
         ";
@@ -199,8 +216,6 @@ RETURNING id_usuario;
         ";
 
             using var cmd = new NpgsqlCommand(sql, con);
-
-            
             cmd.Parameters.AddWithValue("@c", nuevoHash);
             cmd.Parameters.AddWithValue("@u", nombreUsuario);
 

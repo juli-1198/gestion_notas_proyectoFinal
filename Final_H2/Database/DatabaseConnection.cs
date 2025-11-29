@@ -14,7 +14,7 @@ namespace Final_H2.Database
         public DatabaseConnection()
         {
             connectionString =
-                "Host=localhost;Port=5432;Username=postgres;Password=admin;Database=gestion_notas;Search Path=gestion_notas;";
+                "Host=localhost;Port=5432;Username=postgres;Password=admin;Database=gestion_notas;SearchPath=gestion_notas;";
         }
 
         public NpgsqlConnection GetConnection()

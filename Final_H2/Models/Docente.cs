@@ -10,7 +10,7 @@ namespace Final_H2.Models
     {
         public Docente() 
         {
-            Rol = "DOCENTE";
+            rol = "DOCENTE";
         }
     }
 }
